@@ -1,3 +1,5 @@
+// lib/auth-service.ts
+
 const API_BASE_URL = "/api/auth" // Use local proxy instead of external backend
 
 export interface LoginRequest {
@@ -22,7 +24,7 @@ class AuthService {
   // Login with email and password
   static async login(credentials: LoginRequest): Promise<AuthTokens> {
     try {
-      const loginUrl = `${API_BASE_URL}/login` // Updated to use proxy endpoint
+      const loginUrl = `${API_BASE_URL}/login` 
 
       console.log("[v0] Login attempt:", {
         url: loginUrl,
@@ -79,7 +81,6 @@ class AuthService {
   static async refreshToken(refreshToken: string): Promise<string> {
     try {
       const response = await fetch(`${API_BASE_URL}/refresh`, {
-        // Updated to use proxy endpoint
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -94,7 +95,12 @@ class AuthService {
       }
 
       const data: { access: string } = await response.json()
-      localStorage.setItem(this.ACCESS_TOKEN_KEY, data.access)
+      
+      // --- CORRECCIÓN AQUÍ ---
+      // Asegurarse de que localStorage solo se llame en el cliente
+      if (typeof window !== "undefined") {
+        localStorage.setItem(this.ACCESS_TOKEN_KEY, data.access)
+      }
 
       return data.access
     } catch (error) {
@@ -105,24 +111,30 @@ class AuthService {
 
   // Set tokens in localStorage
   static setTokens(accessToken: string, refreshToken: string): void {
+    // --- CORRECCIÓN AQUÍ ---
+    // Añadida la comprobación de 'window'
+    if (typeof window === "undefined") return;
     localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken)
     localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken)
   }
 
   // Get access token
   static getAccessToken(): string | null {
+    // --- CORRECCIÓN AQUÍ ---
     if (typeof window === "undefined") return null
     return localStorage.getItem(this.ACCESS_TOKEN_KEY)
   }
 
   // Get refresh token
   static getRefreshToken(): string | null {
+    // --- CORRECCIÓN AQUÍ ---
     if (typeof window === "undefined") return null
     return localStorage.getItem(this.REFRESH_TOKEN_KEY)
   }
 
   // Clear tokens
   static clearTokens(): void {
+    // --- CORRECCIÓN AQUÍ ---
     if (typeof window === "undefined") return
     localStorage.removeItem(this.ACCESS_TOKEN_KEY)
     localStorage.removeItem(this.REFRESH_TOKEN_KEY)

@@ -1,16 +1,18 @@
+// components/top-bar.tsx
+
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context"
+// import { useAuth } from "@/contexts/auth-context" // Ya no se usa
 import { Button } from "@/components/ui/button"
 
 export function TopBar() {
   const router = useRouter()
-  const { logout } = useAuth()
+  // const { logout } = useAuth() // No llamamos a logout
 
   const handleLogout = () => {
-    logout()
-    router.push("/login")
+    // logout() // No limpiamos el token
+    router.push("/login") // Solo redirigimos al login
   }
 
   return (

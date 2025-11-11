@@ -2,6 +2,9 @@
 
 import AuthService from "@/lib/auth-service"
 
+// Define la URL base de tu backend
+const API_BASE_URL = "https://smartsales365-backend.onrender.com"
+
 interface FetchSalesParams {
   page?: number
   client_search?: string
@@ -39,6 +42,7 @@ export async function fetchSalesData(params: FetchSalesParams) {
       }
     }
 
+    // Esta función ya usa el proxy /api/sales, lo cual está bien.
     const response = await fetch(`/api/sales?${queryParams.toString()}`, {
       method: "GET",
       headers: {
@@ -92,7 +96,8 @@ export async function generateReport(filters: Omit<FetchSalesParams, "page">, re
       }
     }
 
-    const response = await fetch(`/api/v1/reports/admin/report/?${queryParams.toString()}`, {
+    // ¡CORRECCIÓN AQUÍ! Se usa la URL completa del backend.
+    const response = await fetch(`${API_BASE_URL}/api/v1/reports/admin/report/?${queryParams.toString()}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -138,7 +143,8 @@ export async function generateDynamicReport(prompt: string) {
       }
     }
 
-    const response = await fetch("/api/v1/reports/dynamic-report/", {
+    // ¡CORRECCIÓN AQUÍ! Se usa la URL completa del backend.
+    const response = await fetch(`${API_BASE_URL}/api/v1/reports/dynamic-report/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

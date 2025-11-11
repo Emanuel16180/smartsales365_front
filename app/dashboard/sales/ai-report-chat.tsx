@@ -1,11 +1,14 @@
+// app/dashboard/sales/ai-report-chat.tsx
 "use client"
 
 import { useState, useRef, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { MessageCircle, Send, Loader2 } from "lucide-react"
+import { MessageCircle, Send, Loader2, Mic } from "lucide-react" // <--- Importa Mic
 import { generateDynamicReport } from "./actions"
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition" // <--- Importa el hook
+import { cn } from "@/lib/utils" // <--- Importa cn (classnames)
 
 interface Message {
   id: string
@@ -27,6 +30,23 @@ export function AIReportChat() {
   const [inputValue, setInputValue] = useState("")
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // --- Lógica de Reconocimiento de Voz ---
+  const { 
+    transcript, 
+    isListening, 
+    isSupported, 
+    startListening, 
+    stopListening 
+  } = useSpeechRecognition()
+
+  // Actualiza el input con la transcripción
+  useEffect(() => {
+    if (transcript) {
+      setInputValue(transcript)
+    }
+  }, [transcript])
+  // --- Fin Lógica de Voz ---
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -113,24 +133,49 @@ export function AIReportChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* --- SECCIÓN DE INPUT MODIFICADA --- */}
       <div className="flex gap-2">
         <Input
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && !loading && handleSendMessage()}
+          onKeyPress={(e) => e.key === "Enter" && !loading && !isListening && handleSendMessage()}
           placeholder="Describe el reporte que necesitas..."
-          disabled={loading}
+          disabled={loading || isListening} // Deshabilita el input mientras escucha
           className="flex-1"
         />
+        
+        {/* Botón de Micrófono */}
+        <Button
+          type="button"
+          onClick={() => (isListening ? stopListening() : startListening())}
+          disabled={loading || !isSupported} // Deshabilita si carga o no es compatible
+          className={cn(
+            isListening
+              ? "bg-red-600 hover:bg-red-700" // Rojo si está escuchando
+              : "bg-blue-600 hover:bg-blue-700" // Azul si no está escuchando
+          )}
+          title={isListening ? "Detener dictado" : "Iniciar dictado"}
+        >
+          <Mic className="w-4 h-4" />
+        </Button>
+
+        {/* Botón de Enviar */}
         <Button
           onClick={handleSendMessage}
-          disabled={loading || !inputValue.trim()}
+          disabled={loading || !inputValue.trim() || isListening} // Deshabilita si escucha
           className="bg-purple-600 hover:bg-purple-700"
         >
           <Send className="w-4 h-4" />
         </Button>
       </div>
+      
+      {/* Mensaje de compatibilidad */}
+      {!isSupported && (
+        <p className="text-xs text-slate-500 mt-2 text-center">
+          El dictado por voz no es compatible con este navegador.
+        </p>
+      )}
+      {/* --- FIN DE SECCIÓN MODIFICADA --- */}
     </Card>
   )
 }
